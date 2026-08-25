@@ -1,8 +1,28 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { colors } from '../theme/colors';
+import { PressableScale } from './Motion';
 
-export function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+type CardProps = {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  onPress?: () => void;
+  accessibilityLabel?: string;
+};
+
+export function Card({ children, style, onPress, accessibilityLabel }: CardProps) {
+  if (onPress) {
+    return (
+      <PressableScale
+        style={[styles.card, style]}
+        onPress={onPress}
+        accessibilityLabel={accessibilityLabel}
+      >
+        {children}
+      </PressableScale>
+    );
+  }
+
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
@@ -11,14 +31,16 @@ const styles = StyleSheet.create({
     minWidth: 0,
     alignSelf: 'stretch',
     backgroundColor: colors.panelRaised,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderBottomWidth: 5,
     borderColor: colors.line,
-    padding: 16,
+    padding: 18,
     shadowColor: colors.shadow,
     shadowOpacity: 0.22,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 5,
+    overflow: 'hidden',
   },
 });

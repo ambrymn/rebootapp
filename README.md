@@ -1,6 +1,6 @@
-# SleepBand Mock UI — Expo SDK 54
+# Reboot — Expo SDK 54
 
-A UI-only React Native / Expo mock for a gamified sleep tracker wrist wearable.
+A playful React Native / Expo sleep companion for a wearable band, with an iOS Screen Time connection flow.
 
 ## SDK target
 
@@ -15,25 +15,47 @@ This version targets:
 - Rounded, playful visual shell
 - Gamified home dashboard
 - Empty device connection page
-- Fake iOS Screen Time-inspired tracker page
+- Real iOS Screen Time authorization states with no sample activity data
+- A local Swift Expo module for Family Controls authorization
 - No real BLE yet
 - No real hardware sync yet
 
 ## Run
 
+React Native 0.81 requires Node `20.19.4` or newer. This machine already has Node 20.20.2 available through NVM:
+
+```bash
+nvm install 20.20.2
+nvm use 20.20.2
+```
+
 ```bash
 npm install
 npx expo install --fix
-npx expo start
+npm start
 ```
 
-Then open in Expo Go or an iOS simulator.
+`npm start` explicitly targets Expo Go and automatically advertises the active Wi-Fi/Ethernet address. This matters on this machine because VMware, VirtualBox, and VPN adapters can otherwise cause Expo to put an unreachable address in the QR code. It also chooses a free Metro port automatically.
+
+Make sure the computer and phone are connected to the same Wi-Fi, then scan the newly generated QR code. If Windows asks about network access, allow Node.js on **Private networks**.
+
+The unmodified Expo LAN launcher remains available for other environments:
+
+```bash
+npm run start:plain
+```
+
+Most UI can be previewed in Expo Go. The Tracker displays a build-required state instead of calling unavailable native code. Actual Screen Time authorization still requires a custom iOS development build on a physical iPhone.
 
 ## Screens
 
 - Home: sleep score, Dream XP, quests, streaks
 - Device: empty BLE connection state
-- Tracker: fake iOS-style screen time and sleep timeline visuals
+- Tracker: Apple Screen Time connection and privacy flow
+
+## iOS Screen Time setup
+
+See [docs/ios-screen-time-setup.md](docs/ios-screen-time-setup.md) for Apple entitlements, development builds, physical-device testing, and the Device Activity Report Extension needed to display live usage.
 
 ## Next step
 

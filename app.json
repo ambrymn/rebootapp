@@ -1,14 +1,18 @@
 {
   "expo": {
-    "name": "SleepBand Mock UI",
-    "slug": "sleepband-mock-ui",
+    "name": "Reboot",
+    "slug": "reboot",
     "version": "1.0.0",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.cac.reboot",
+      "supportsTablet": true,
+      "entitlements": {
+        "com.apple.developer.family-controls": true
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true

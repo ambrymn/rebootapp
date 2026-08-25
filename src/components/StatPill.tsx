@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { font, type } from '../theme/type';
 import { colors } from '../theme/colors';
 
@@ -14,13 +15,17 @@ export function StatPill({
   accent: string;
   detail?: string;
 }) {
+  const icon = label === 'Asleep' ? 'moon' : 'pulse';
+
   return (
     <View style={styles.pill}>
-      <View style={[styles.dot, { backgroundColor: accent }]} />
-      <View>
-        <Text style={styles.value}>{value}</Text>
+      <View style={[styles.icon, { borderColor: accent }]}>
+        <Ionicons name={icon} size={14} color={accent} />
+      </View>
+      <View style={styles.copy}>
         <Text style={styles.label}>{label}</Text>
-        {detail ? <Text style={styles.detail}>{detail}</Text> : null}
+        <Text style={styles.value}>{value}</Text>
+        {detail ? <Text style={[styles.detail, { color: accent }]}>{detail} vs usual</Text> : null}
       </View>
     </View>
   );
@@ -28,38 +33,42 @@ export function StatPill({
 
 const styles = StyleSheet.create({
   pill: {
-    flexGrow: 1,
-    width: '100%',
+    flex: 1,
     minWidth: 0,
-    minHeight: 82,
-    borderRadius: 8,
-    backgroundColor: colors.panelRaised,
-    borderWidth: 1,
+    minHeight: 98,
+    borderRadius: 17,
+    backgroundColor: colors.panel,
+    borderWidth: 2,
+    borderBottomWidth: 4,
     borderColor: colors.lineSoft,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: 9,
   },
-  dot: { width: 10, height: 10, borderRadius: 99, marginTop: 5 },
+  icon: {
+    width: 28,
+    height: 28,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copy: { flex: 1, minWidth: 0 },
   value: {
-    fontFamily: font.rounded,
-    fontWeight: '900',
+    fontFamily: font.heavy,
     color: colors.text,
     fontSize: type.bodyLarge,
+    marginTop: 2,
   },
   label: {
     fontFamily: font.rounded,
     color: colors.muted,
-    fontWeight: '700',
     fontSize: type.caption,
-    marginTop: 2,
   },
   detail: {
-    color: colors.quiet,
-    fontFamily: font.rounded,
-    fontSize: 11,
-    fontWeight: '700',
+    fontFamily: font.strong,
+    fontSize: 10,
     marginTop: 2,
   },
 });

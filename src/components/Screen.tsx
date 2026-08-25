@@ -25,10 +25,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: {
     width: '100%',
+    maxWidth: 520,
     alignSelf: 'center',
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 120,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 126,
     boxSizing: 'border-box',
   } as ViewStyle,
 });

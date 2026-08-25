@@ -1,25 +1,18 @@
-import { Platform } from 'react-native';
-
 export const font = {
-  rounded: Platform.select({
-    ios: 'Avenir Next',
-    android: 'sans-serif-rounded',
-    default: 'System',
-  }),
-  heavy: Platform.select({
-    ios: 'Avenir Next',
-    android: 'sans-serif-condensed',
-    default: 'System',
-  }),
+  rounded: 'NunitoSans_700Bold',
+  body: 'NunitoSans_600SemiBold',
+  strong: 'NunitoSans_800ExtraBold',
+  heavy: 'Fredoka_700Bold',
+  display: 'Fredoka_600SemiBold',
 };
 
 export const type = {
   eyebrow: 11,
   caption: 12,
   body: 15,
-  bodyLarge: 17,
-  title: 30,
-  display: 42,
+  bodyLarge: 18,
+  title: 32,
+  display: 46,
 };
 
 export const space = {

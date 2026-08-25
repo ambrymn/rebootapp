@@ -1,6 +1,17 @@
 import React from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useFonts } from 'expo-font';
+import {
+  Fredoka_600SemiBold,
+  Fredoka_700Bold,
+} from '@expo-google-fonts/fredoka';
+import {
+  NunitoSans_600SemiBold,
+  NunitoSans_700Bold,
+  NunitoSans_800ExtraBold,
+} from '@expo-google-fonts/nunito-sans';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { AppShell } from './src/components/AppShell';
@@ -31,6 +42,26 @@ const navTheme = {
 };
 
 export default function App() {
+  const [fontsLoaded, fontError] = useFonts({
+    Fredoka_600SemiBold,
+    Fredoka_700Bold,
+    NunitoSans_600SemiBold,
+    NunitoSans_700Bold,
+    NunitoSans_800ExtraBold,
+  });
+
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={styles.loadingScreen}>
+        <View style={styles.loadingMoon}>
+          <Ionicons name="moon" size={30} color={colors.primarySoft} />
+        </View>
+        <ActivityIndicator color={colors.primarySoft} />
+        <Text style={styles.loadingText}>Waking up Reboot…</Text>
+      </View>
+    );
+  }
+
   return (
     <AppShell>
       <StatusBar style="light" />
@@ -38,41 +69,25 @@ export default function App() {
         <Tab.Navigator
           screenOptions={({ route }) => ({
             headerShown: false,
-            tabBarStyle: {
-              position: 'absolute',
-              left: 20,
-              right: 20,
-              bottom: 22,
-              height: 74,
-              borderRadius: 8,
-              borderTopWidth: 1,
-              borderWidth: 1,
-              borderColor: colors.line,
-              backgroundColor: colors.panel,
-              shadowColor: colors.shadow,
-              shadowOpacity: 0.28,
-              shadowRadius: 14,
-              shadowOffset: { width: 0, height: 8 },
-              elevation: 12,
-              paddingBottom: 12,
-              paddingTop: 10,
-            },
-            tabBarLabelStyle: {
-              fontFamily: font.rounded,
-              fontWeight: '800',
-              fontSize: 11,
-            },
-            tabBarActiveTintColor: colors.primary,
+            tabBarHideOnKeyboard: true,
+            tabBarStyle: styles.tabBar,
+            tabBarItemStyle: styles.tabItem,
+            tabBarLabelStyle: styles.tabLabel,
+            tabBarActiveTintColor: colors.text,
             tabBarInactiveTintColor: colors.quiet,
-            tabBarIcon: ({ focused, color, size }) => {
+            tabBarIcon: ({ focused, color }) => {
               const icon =
                 route.name === 'Home'
-                  ? focused ? 'planet' : 'planet-outline'
+                  ? focused ? 'moon' : 'moon-outline'
                   : route.name === 'Device'
                   ? focused ? 'watch' : 'watch-outline'
-                  : focused ? 'bar-chart' : 'bar-chart-outline';
+                  : focused ? 'stats-chart' : 'stats-chart-outline';
 
-              return <Ionicons name={icon as any} size={size + 2} color={color} />;
+              return (
+                <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+                  <Ionicons name={icon as any} size={22} color={focused ? colors.primarySoft : color} />
+                </View>
+              );
             },
           })}
         >
@@ -84,3 +99,68 @@ export default function App() {
     </AppShell>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingScreen: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    backgroundColor: colors.bg,
+  },
+  loadingMoon: {
+    width: 68,
+    height: 68,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryDeep,
+    borderWidth: 2,
+    borderBottomWidth: 5,
+    borderColor: colors.primaryShadow,
+  },
+  loadingText: {
+    color: colors.soft,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  tabBar: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 14,
+    height: 78,
+    borderRadius: 24,
+    borderTopWidth: 2,
+    borderWidth: 2,
+    borderBottomWidth: 5,
+    borderColor: colors.line,
+    backgroundColor: colors.panel,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 12,
+    paddingBottom: 8,
+    paddingTop: 8,
+  },
+  tabItem: { borderRadius: 18 },
+  tabLabel: {
+    fontFamily: font.rounded,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  iconWrap: {
+    width: 40,
+    height: 30,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapActive: {
+    backgroundColor: colors.primaryDeep,
+    borderWidth: 1,
+    borderColor: colors.primaryShadow,
+  },
+});
