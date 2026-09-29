@@ -72,11 +72,15 @@ export function PressableScale({
   style,
   onPress,
   accessibilityLabel,
+  disabled = false,
+  busy = false,
 }: {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
   accessibilityLabel?: string;
+  disabled?: boolean;
+  busy?: boolean;
 }) {
   const reduced = useReducedMotion();
   const pressed = useRef(new Animated.Value(0)).current;
@@ -98,12 +102,15 @@ export function PressableScale({
     <AnimatedPressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: disabled || busy, busy }}
+      disabled={disabled || busy}
       onPress={onPress}
       onPressIn={() => move(1)}
       onPressOut={() => move(0)}
       style={[
         style,
         {
+          opacity: disabled ? 0.5 : 1,
           transform: [
             { translateY: pressed.interpolate({ inputRange: [0, 1], outputRange: [0, 3] }) },
             { scale: pressed.interpolate({ inputRange: [0, 1], outputRange: [1, 0.985] }) },

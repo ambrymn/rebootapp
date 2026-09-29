@@ -1,11 +1,27 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Text, View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Linking, Text, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { Enter, PressableScale, useReducedMotion } from '../components/Motion';
 import { colors } from '../theme/colors';
 import { font, space, type } from '../theme/type';
+import { useBle } from '../services/ble/BleProvider';
+import { BleIssue } from '../services/ble/types';
+
+const issueCopy: Record<BleIssue, { title: string; copy: string }> = {
+  bluetoothOff: { title: 'Bluetooth is off', copy: 'Turn on Bluetooth on your phone, then try connecting again.' },
+  permissionDenied: { title: 'Allow Bluetooth access', copy: 'Reboot needs access to find your device. Tap Connect to try again.' },
+  permissionBlocked: { title: 'Bluetooth access is off', copy: 'Open Settings and allow Bluetooth or Nearby Devices access for Reboot. Older Android phones also need location permission.' },
+  unsupported: { title: 'Bluetooth is unavailable', copy: 'Use a physical iPhone or Android phone that supports Bluetooth Low Energy.' },
+  locationOff: { title: 'Turn on Location services', copy: 'This Android version needs Location services enabled to find Bluetooth devices. Reboot does not use your location.' },
+  scanFailed: { title: 'Could not search for devices', copy: 'Keep your device powered on and nearby, then try again.' },
+  connectionFailed: { title: 'Could not connect', copy: 'Keep your device nearby and disconnect it from any other phone, then try again.' },
+  incompatible: { title: 'Device needs matching firmware', copy: 'Install the Reboot Sleep connection firmware on your device, then connect again.' },
+  timeout: { title: 'Connection timed out', copy: 'Check that Bluetooth is on and your device is powered on nearby, then try again.' },
+  disconnected: { title: 'Device disconnected', copy: 'Your device may be out of range or powered off. Bring it nearby and tap Connect.' },
+  disconnectFailed: { title: 'Could not disconnect', copy: 'Try Disconnect again, or turn Bluetooth off on your phone.' },
+};
 
 function BandBuddy() {
   const reduced = useReducedMotion();
@@ -84,6 +100,44 @@ function BandBuddy() {
 }
 
 export function DeviceScreen() {
+  const ble = useBle();
+  const [settingsError, setSettingsError] = useState(false);
+  const searching = ble.phase === 'scanning';
+  const working = ['requesting', 'connecting', 'disconnecting'].includes(ble.phase);
+  const connected = ble.phase === 'connected';
+  const showDevices = searching || ble.phase === 'results';
+  const canCancel = searching || ['requesting', 'connecting', 'results'].includes(ble.phase);
+  const showSettings = ble.issue === 'permissionBlocked' || ble.issue === 'locationOff';
+  const error = ble.issue ? issueCopy[ble.issue] : null;
+  const title = error?.title ?? (connected ? `${ble.device?.name} is connected`
+    : ble.phase === 'connecting' ? `Connecting to ${ble.device?.name}`
+    : searching ? 'Looking for your device'
+    : ble.phase === 'requesting' ? 'Getting Bluetooth ready'
+    : ble.phase === 'disconnecting' ? 'Disconnecting your device'
+    : ble.phase === 'unavailable' ? 'Connect from your phone'
+    : ble.phase === 'results' ? (ble.devices.length ? 'Choose your Reboot Sleep' : 'No devices found')
+    : 'No device connected yet');
+  const copy = error?.copy ?? (ble.unavailableReason || (connected
+    ? 'Your Bluetooth connection is ready. Movement readings and sleep recording are coming later.'
+    : ble.phase === 'connecting' ? 'Checking your device and its firmware.'
+    : ble.phase === 'requesting' ? 'Allow Bluetooth access if your phone asks.'
+    : showDevices && ble.devices.length ? 'Select your device below. The four-character code helps tell devices apart.'
+    : 'Power on your Reboot Sleep device and keep it close to your phone.'));
+  const primaryLabel = connected ? 'Disconnect' : searching ? 'Searching…'
+    : ble.phase === 'requesting' ? 'Preparing…' : ble.phase === 'connecting' ? 'Connecting…'
+    : ble.phase === 'disconnecting' ? 'Disconnecting…'
+    : ble.phase === 'unavailable' ? 'Development build required'
+    : ble.phase === 'results' ? 'Scan again' : 'Connect';
+  const statusColor = connected && !error ? colors.mint : colors.orange;
+
+  const openSettings = async () => {
+    setSettingsError(false);
+    try {
+      if (ble.issue === 'locationOff') await Linking.sendIntent('android.settings.LOCATION_SOURCE_SETTINGS');
+      else await Linking.openSettings();
+    } catch { setSettingsError(true); }
+  };
+
   return (
     <Screen contentStyle={styles.content}>
       <Enter delay={0}>
@@ -93,7 +147,7 @@ export function DeviceScreen() {
         </View>
         <View style={styles.header}>
           <Text style={styles.title}>Meet your sleepy sidekick</Text>
-          <Text style={styles.subtitle}>Keep the band nearby. Once pairing is live, every sleep quest will sync here.</Text>
+          <Text style={styles.subtitle}>Keep your Reboot Sleep nearby. Connect here to get your device ready.</Text>
         </View>
       </Enter>
 
@@ -102,19 +156,48 @@ export function DeviceScreen() {
           <BandBuddy />
 
           <View style={styles.statusPill}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusPillText}>WAITING FOR PAIRING</Text>
+            <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+            <Text style={[styles.statusPillText, { color: statusColor }]}>{connected ? 'CONNECTED' : searching ? 'SEARCHING' : working ? 'PLEASE WAIT' : 'NOT CONNECTED'}</Text>
           </View>
-          <Text style={styles.emptyTitle}>No band connected yet</Text>
-          <Text style={styles.emptyCopy}>Bluetooth pairing is the next prototype step. Your dashboard is already ready for it.</Text>
+          <Text accessibilityLiveRegion="polite" style={styles.emptyTitle}>{title}</Text>
+          <Text style={styles.emptyCopy}>{copy}</Text>
 
-          <PressableScale style={styles.primaryAction} onPress={() => undefined} accessibilityLabel="Pairing opens soon">
+          {showDevices && ble.devices.length > 0 && (
+            <View style={styles.deviceList}>
+              {ble.devices.map(device => (
+                <PressableScale key={device.id} style={styles.deviceRow} onPress={() => { void ble.connect(device); }} accessibilityLabel={`Connect to ${device.name}, ${device.id.slice(-5)}`}>
+                  <View style={styles.deviceRowContent}>
+                    <Ionicons name="bluetooth" size={22} color={colors.mint} />
+                    <View style={styles.deviceRowText}>
+                      <Text style={styles.deviceName}>{device.name}</Text>
+                      <Text style={styles.deviceDetail}>Nearby · {device.id.slice(-5)}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.soft} />
+                  </View>
+                </PressableScale>
+              ))}
+            </View>
+          )}
+
+          {showSettings && (
+            <PressableScale style={styles.secondaryAction} onPress={() => { void openSettings(); }} accessibilityLabel="Open Settings">
+              <Text style={styles.secondaryActionText}>Open Settings</Text>
+            </PressableScale>
+          )}
+          {settingsError && <Text accessibilityLiveRegion="polite" style={styles.emptyCopy}>Open your phone’s Settings manually to update access.</Text>}
+
+          <PressableScale style={styles.primaryAction} busy={working || searching} disabled={ble.phase === 'unavailable'} onPress={() => { setSettingsError(false); void (connected ? ble.disconnect() : ble.scan()); }} accessibilityLabel={primaryLabel}>
             <View style={styles.primaryActionContent}>
-              <Ionicons name="bluetooth" size={19} color={colors.primaryDeep} />
-              <Text style={styles.primaryActionText}>Pairing opens soon</Text>
-              <Ionicons name="arrow-forward" size={18} color={colors.primaryDeep} />
+              {working || searching ? <ActivityIndicator color={colors.primaryDeep} /> : <Ionicons name={connected ? 'close-circle-outline' : 'bluetooth'} size={19} color={colors.primaryDeep} />}
+              <Text style={styles.primaryActionText}>{primaryLabel}</Text>
+              {!working && !searching && <Ionicons name="arrow-forward" size={18} color={colors.primaryDeep} />}
             </View>
           </PressableScale>
+          {canCancel && (
+            <PressableScale style={styles.secondaryAction} onPress={ble.cancel} accessibilityLabel="Cancel connection">
+              <Text style={styles.secondaryActionText}>Cancel</Text>
+            </PressableScale>
+          )}
         </Card>
       </Enter>
 
@@ -153,4 +236,12 @@ const styles = StyleSheet.create({
   primaryAction: { width: '100%', minHeight: 54, marginTop: space.xl, backgroundColor: colors.primary, borderRadius: 17, borderWidth: 2, borderBottomWidth: 6, borderColor: colors.primaryShadow, overflow: 'hidden' },
   primaryActionContent: { flex: 1, minHeight: 48, paddingHorizontal: space.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm },
   primaryActionText: { flex: 1, color: colors.primaryDeep, fontFamily: font.strong, fontSize: type.body, textAlign: 'center' },
+  deviceList: { width: '100%', gap: space.sm, marginTop: space.lg },
+  deviceRow: { backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.lineSoft, borderRadius: 16 },
+  deviceRowContent: { minHeight: 66, flexDirection: 'row', alignItems: 'center', padding: space.md, gap: space.sm },
+  deviceRowText: { flex: 1 },
+  deviceName: { color: colors.text, fontFamily: font.strong, fontSize: type.body },
+  deviceDetail: { color: colors.muted, fontFamily: font.body, fontSize: 12, marginTop: 3 },
+  secondaryAction: { minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: space.lg, marginTop: space.sm },
+  secondaryActionText: { color: colors.primarySoft, fontFamily: font.strong, fontSize: type.body },
 });

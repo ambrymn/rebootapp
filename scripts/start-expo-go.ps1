@@ -1,3 +1,5 @@
+param([switch]$DevClient)
+
 $ErrorActionPreference = 'Stop'
 
 $network = Get-NetIPConfiguration |
@@ -16,9 +18,14 @@ if (-not $hostAddress) {
 
 $env:REACT_NATIVE_PACKAGER_HOSTNAME = $hostAddress
 
-Write-Host "Starting Expo Go on $($network.InterfaceAlias) ($hostAddress)"
+$clientName = if ($DevClient) { 'Reboot development client' } else { 'Expo Go' }
+Write-Host "Starting $clientName on $($network.InterfaceAlias) ($hostAddress)"
 Write-Host 'Make sure the phone is connected to the same Wi-Fi network.'
 
-& npx.cmd expo start --go --lan --port 0 @args
+if ($DevClient) {
+  & npx.cmd expo start --dev-client --lan --port 0 @args
+} else {
+  & npx.cmd expo start --go --lan --port 0 @args
+}
 exit $LASTEXITCODE
 

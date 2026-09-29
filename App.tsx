@@ -20,6 +20,7 @@ import { DeviceScreen } from './src/screens/DeviceScreen';
 import { ScreenTimeSleepScreen } from './src/screens/ScreenTimeSleepScreen';
 import { colors } from './src/theme/colors';
 import { font } from './src/theme/type';
+import { BleProvider } from './src/services/ble/BleProvider';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -64,38 +65,40 @@ export default function App() {
 
   return (
     <AppShell>
-      <StatusBar style="light" />
-      <NavigationContainer theme={navTheme}>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarHideOnKeyboard: true,
-            tabBarStyle: styles.tabBar,
-            tabBarItemStyle: styles.tabItem,
-            tabBarLabelStyle: styles.tabLabel,
-            tabBarActiveTintColor: colors.text,
-            tabBarInactiveTintColor: colors.quiet,
-            tabBarIcon: ({ focused, color }) => {
-              const icon =
-                route.name === 'Home'
-                  ? focused ? 'moon' : 'moon-outline'
-                  : route.name === 'Device'
-                  ? focused ? 'watch' : 'watch-outline'
-                  : focused ? 'stats-chart' : 'stats-chart-outline';
+      <BleProvider>
+        <StatusBar style="light" />
+        <NavigationContainer theme={navTheme}>
+          <Tab.Navigator
+            screenOptions={({ route }) => ({
+              headerShown: false,
+              tabBarHideOnKeyboard: true,
+              tabBarStyle: styles.tabBar,
+              tabBarItemStyle: styles.tabItem,
+              tabBarLabelStyle: styles.tabLabel,
+              tabBarActiveTintColor: colors.text,
+              tabBarInactiveTintColor: colors.quiet,
+              tabBarIcon: ({ focused, color }) => {
+                const icon =
+                  route.name === 'Home'
+                    ? focused ? 'moon' : 'moon-outline'
+                    : route.name === 'Device'
+                    ? focused ? 'watch' : 'watch-outline'
+                    : focused ? 'stats-chart' : 'stats-chart-outline';
 
-              return (
-                <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-                  <Ionicons name={icon as any} size={22} color={focused ? colors.primarySoft : color} />
-                </View>
-              );
-            },
-          })}
-        >
-          <Tab.Screen name="Home" component={DashboardScreen} />
-          <Tab.Screen name="Device" component={DeviceScreen} />
-          <Tab.Screen name="Tracker" component={ScreenTimeSleepScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
+                return (
+                  <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+                    <Ionicons name={icon as any} size={22} color={focused ? colors.primarySoft : color} />
+                  </View>
+                );
+              },
+            })}
+          >
+            <Tab.Screen name="Home" component={DashboardScreen} />
+            <Tab.Screen name="Device" component={DeviceScreen} />
+            <Tab.Screen name="Tracker" component={ScreenTimeSleepScreen} />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </BleProvider>
     </AppShell>
   );
 }

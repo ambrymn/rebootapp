@@ -7,18 +7,43 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "plugins": [
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "neverForLocation": true,
+          "modes": [],
+          "bluetoothAlwaysPermission": "Allow Reboot to find and connect to your nearby Reboot Sleep device."
+        }
+      ]
+    ],
     "ios": {
       "bundleIdentifier": "com.cac.reboot",
       "supportsTablet": true,
-      "entitlements": {
-        "com.apple.developer.family-controls": true
+      // "entitlements": {
+      //   "com.apple.developer.family-controls": true
+      // },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "edgeToEdgeEnabled": true
+      "package": "com.cac.reboot",
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "56703c4f-3cdd-40ed-a598-15c67db59731"
+      }
     }
   }
 }

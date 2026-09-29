@@ -14,10 +14,10 @@ This version targets:
 
 - Rounded, playful visual shell
 - Gamified home dashboard
-- Empty device connection page
+- BLE device discovery, verified connection, and manual disconnect on iOS and Android
 - Real iOS Screen Time authorization states with no sample activity data
 - A local Swift Expo module for Family Controls authorization
-- No real BLE yet
+- Matching XIAO ESP32-S3 Arduino BLE firmware
 - No real hardware sync yet
 
 ## Run
@@ -50,16 +50,23 @@ Most UI can be previewed in Expo Go. The Tracker displays a build-required state
 ## Screens
 
 - Home: sleep score, Dream XP, quests, streaks
-- Device: empty BLE connection state
+- Device: scan for nearby Reboot Sleep devices, connect, and disconnect
 - Tracker: Apple Screen Time connection and privacy flow
 
 ## iOS Screen Time setup
 
 See [docs/ios-screen-time-setup.md](docs/ios-screen-time-setup.md) for Apple entitlements, development builds, physical-device testing, and the Device Activity Report Extension needed to display live usage.
 
-## Next step
+## Bluetooth device setup
 
-After the UI is approved, add real BLE scanning using `react-native-ble-plx`.
+See [docs/ble-setup.md](docs/ble-setup.md) for corrected LIS3DH wiring, Arduino
+firmware upload, native development builds, permissions, and physical-device tests.
+BLE requires a development build; Expo Go and web show a build-required state.
+Use `npm run start:dev` after installing that build. `npm start` still uses Expo Go.
+
+The first BLE milestone verifies a connection only. Sensor streaming and sleep
+recording are not implemented yet. Run `npm test` and `npm run typecheck` for the
+connection controller and native adapter checks.
 
 
 ## Troubleshooting
